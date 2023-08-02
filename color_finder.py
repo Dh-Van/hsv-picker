@@ -1,21 +1,21 @@
 import cv2, numpy as np, contours
 
 class ColorFinder:
-    image = None
-    cache = None
-    hsv_image = None
+    image, cache, hsv_image = None, None, None
 
-    hue_range = []
-    # current_hsv_range = [(90, 50, 80), (110, 200, 255)]
-    current_hsv_range = []
+    hue_range, current_hsv_range = [], []
 
     mouse_x, mouse_y = 0, 0
     drawing = False
 
-    def __init__(self, path, hue_range):
-        self.image = cv2.imread(path)
+    def __init__(self, path, hue_range, manual):
+        img = cv2.imread(path)
+        assert (img is not None)
+        self.image = img.copy()
         self.cache = self.image.copy()
-        self.hue_range = hue_range
+        if(manual): self.current_hsv_range = hue_range
+        else: self.hue_range = hue_range
+
         cv2.namedWindow("Color Finder")
         cv2.setMouseCallback("Color Finder", self.crop_image)
 
@@ -24,7 +24,8 @@ class ColorFinder:
             self.drawing = True
             self.mouse_x, self.mouse_y = x, y
         elif(event == cv2.EVENT_MOUSEMOVE):
-            if(self.drawing): cv2.rectangle(self.cache, (self.mouse_x, self.mouse_y), (x, y), (0, 255, 0), 2)
+            if(self.drawing): 
+                cv2.rectangle(self.cache, (self.mouse_x, self.mouse_y), (x, y), (0, 255, 0), 2)
         elif(event == cv2.EVENT_LBUTTONUP):
             self.drawing = False
             cv2.rectangle(self.image, (self.mouse_x, self.mouse_y), (x, y), (0, 255, 255), 2)
@@ -69,15 +70,9 @@ class ColorFinder:
 
 
         if cv2.waitKey(10) == ord('q'):
+            cv2.destroyAllWindows()
             return False
         else:
             return True
-        
-
-color_finder = ColorFinder("resources/purpleLine2.png", (110, 150))
-running = True
-
-while(running):
-    running = color_finder.refresh()
-
+    
 cv2.destroyAllWindows()
